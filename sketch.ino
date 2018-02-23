@@ -5,6 +5,9 @@ const int colorLEDs[] = {2, 3, 4, 5};
 const int STATE_SIMON_TURN = 0;
 const int STATE_USER_TURN = 1;
 const int STATE_LOSE = 2;
+const int buzzer = 13; 
+const int colorTones[]={400,800,1000,1200};
+int sum=0;
 
 
 int guessIndex = 0;
@@ -20,7 +23,6 @@ void setup() {
     pinMode(colorLEDs[i], OUTPUT);
   }
   Serial.begin(9600);
-  randomSeed(analogRead(0));
   startNewGame();
 }
 
@@ -28,6 +30,11 @@ void startNewGame() {
   sequenceLength = 0;
   state = STATE_SIMON_TURN;
   guessIndex = 0;
+  for (int i=0;i<sequenceLength;i++){
+    sum+=sequence[i];
+  }
+  randomSeed(sum);
+  
 }
 
 void addToSequence() {
@@ -35,14 +42,19 @@ void addToSequence() {
   sequenceLength++;
 }
 
+void playSound(int color) {
+  tone(buzzer,colorTones[color]);
+  delay(500);
+  noTone(buzzer);
+}
+
 void displaySequence() {
   for (int i = 0; i < sequenceLength; i++) {
     int value = sequence[i];
     digitalWrite(colorLEDs[value], HIGH);
-    Serial.print("simon on " + colorLEDs[value]);
-    delay(500);
+    playSound(value);
     digitalWrite(colorLEDs[value], LOW);
-    Serial.print("simon off " + colorLEDs[value]);
+
     delay(150);
   }
 }
@@ -57,36 +69,6 @@ void simonTurn() {
   displaySequence();
 }
 
-//// returns TRUE if user lost on their turn
-//bool userTurn() {
-//  //  bool buttonIsHeldDown = false;
-//
-//  while (guessIndex < sequenceLength) {
-//    for (int i = 0; i < colorsCount; i++) {
-//      bool isPressed = LOW == digitalRead(colorButtons[i]);
-//      if (isPressed) {
-//        //        buttonIsHeldDown = true;
-//        if (i == sequence[guessIndex]) {
-//          digitalWrite(colorLEDs[i], HIGH);
-//          Serial.print("user on " + colorLEDs[i]);
-//          delay(150);
-//        }
-//      }
-//      digitalWrite(colorLEDs[i], isPressed);
-//    }
-//
-//  }
-//
-//
-//  for (int i = 0; i < colorsCount; i++) {
-//    digitalWrite(colorLEDs[i], LOW);
-//
-//  }
-//
-//  //    delay(1000);
-//  guessIndex = 0;
-//  return false;
-//}
 
 
 bool userTurn() {
@@ -107,9 +89,13 @@ bool userTurn() {
         isPressed = LOW == digitalRead(colorButtons[i]);
         if (isPressed) {
           int guessColor = i;
+          digitalWrite(colorLEDs[guessColor],HIGH);
+          playSound(guessColor);
+          digitalWrite(colorLEDs[guessColor],LOW);
           if (actualColor != guessColor) return false;
 
         } else {
+          
           Serial.println("stuck in loop");
         }
       }
@@ -143,15 +129,7 @@ void lose() {
 }
 
 void loop() {
-  //  for (int i = 0; i < colorsCount; i++) {
-  //    // Since we used pull-up resistors, a button is pressed
-  //    // when it's pulled LOW.
-  //    bool isPressed = LOW == digitalRead(colorButtons[i]);
-  //    if (isPressed) {
-  //      Serial.println(colorNames[i]);
-  //    }
-  //    digitalWrite(colorLEDs[i], isPressed);
-  //  }
+
 
   if (state == STATE_SIMON_TURN) {
     simonTurn();
