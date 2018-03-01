@@ -1,4 +1,4 @@
-const int colorsCount = 4;
+const int colorsCount = 4 ;
 const int colorButtons[] = {8, 9, 10, 11};
 const char* colorNames[] = {"red", "green", "blue", "yellow"};
 const int colorLEDs[] = {2, 3, 4, 5};
@@ -8,6 +8,7 @@ const int STATE_LOSE = 2;
 const int buzzer = 13;
 const int colorTones[] = {400, 800, 1000, 1200};
 int sum = 0;
+
 
 int guessIndex = 0;
 int sequenceLength = 0;
@@ -27,12 +28,14 @@ void setup() {
 
 void startNewGame() {
   sequenceLength = 0;
+
   state = STATE_SIMON_TURN;
   guessIndex = 0;
   for (int i = 0; i < sequenceLength; i++) {
     sum += sequence[i];
   }
   randomSeed(sum);
+
 }
 
 void addToSequence() {
@@ -52,6 +55,7 @@ void displaySequence() {
     digitalWrite(colorLEDs[value], HIGH);
     playSound(value);
     digitalWrite(colorLEDs[value], LOW);
+
     delay(150);
   }
 }
@@ -66,17 +70,20 @@ void simonTurn() {
   displaySequence();
 }
 
+
+
 bool userTurn() {
 
   int actualColor;
   bool isPressed;
   while (guessIndex < sequenceLength) {
+
     actualColor = sequence[guessIndex];
     isPressed = false;
 
     while (!isPressed) {
       for (int i = 0; i < colorsCount; i++) {
-        // LOW means pressed
+        //LOW means pressed
         if (isPressed) continue;
         isPressed = LOW == digitalRead(colorButtons[i]);
         if (isPressed) {
@@ -84,38 +91,46 @@ bool userTurn() {
           digitalWrite(colorLEDs[guessColor], HIGH);
           playSound(guessColor);
           digitalWrite(colorLEDs[guessColor], LOW);
-          if (actualColor != guessColor) {
-            return false;
-          }
+          if (actualColor != guessColor) return false;
+
         } else {
+
           Serial.println("stuck in loop");
         }
       }
+
     }
     guessIndex++;
     delay(200);
-
   }
-
   guessIndex = 0;
   return true;
 
 }
 
+
+
 void lose() {
   Serial.println("you lose!");
-  for (int i = 0; i < colorsCount; i++) {
-    digitalWrite(colorLEDs[i], HIGH);
-  }
-  delay(3000);
+  //make wa wa waaaa sound
+  delay(100);
+  tone(buzzer, 800);
+  delay(500);
+  noTone(buzzer);
+  delay(50);
+  tone(buzzer, 750);
+  delay(500);
+  noTone(buzzer);
+  delay(50);
+  tone(buzzer, 675);
+  delay(1000);
+  noTone(buzzer);
 
-  for (int i = 0; i < colorsCount; i++) {
-    digitalWrite(colorLEDs[i], LOW);
-  }
   startNewGame();
 }
 
 void loop() {
+
   if (state == STATE_SIMON_TURN) {
     simonTurn();
     state = STATE_USER_TURN;
@@ -125,7 +140,9 @@ void loop() {
     if (stillPlaying) {
       state = STATE_SIMON_TURN;
     } else {
+      //state = STATE_LOSE;
       lose();
+
     }
   }
 
